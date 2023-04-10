@@ -89,7 +89,7 @@ disease_requires(schistosomiasis , [fever, bloody_diarrhea, body_pain, abdominal
 % all classifications
 classification(infectious, [measles, tuberculosis, dengue_fever, malaria, schistosomiasis]).
 classification(waterborne, [hepatitis_a, diarrhea, cholera, typhoid_fever]).
-classification(respiratory, [pneumonia]).
+classification(respiratory, [pneumonia, tuberculosis]).
 
 % classification questions
 classification_question(infectious, 'Have you recently been exposed to someone with an infectious disease?').
@@ -131,7 +131,6 @@ symptom_question(bleeding_gums, 'bleeding gums').
 symptom_question(easy_bruising, 'easy_bruising').
 symptom_question(shaking_chills, 'shaking chills').
 symptom_question(profuse_sweating, 'profuse sweating').
-symptom_question(diarrhea, 'diarrhea').
 symptom_question(anemia, 'anemia').
 symptom_question(seizures, 'seizures').
 symptom_question(coma, 'coma').
@@ -233,7 +232,7 @@ ask_classifications_and_diagnose([SelectedClassification|RemainingClassification
     (
         ask_classification(SelectedClassification, Diseases),
         (
-            print("Have you experienced or felt any of the following recently?"),
+            writeln('Have you experienced or felt any of the following recently?'),
             nl,
             diagnose_in_diseases(Diseases),
             !
@@ -254,8 +253,18 @@ diagnose_in_diseases([Disease|RemainingDiseases]) :-
     ;   diagnose_in_diseases(RemainingDiseases)
     ).
 
+% initialize all symptoms to null
+init :-
+    findall(Symptom, symptom_question(Symptom, _), Symptoms),
+    maplist(reset_symptoms, Symptoms).
+
+reset_symptoms(Symptom) :-
+    retract(has(Symptom, _)),
+    assert(has(Symptom, null)).
+
 % main
 run :-
     writeln('Select the classification of the disease you think you might have:'),
     findall(Classification, classification_question(Classification, _), Classifications),
-    ask_classifications_and_diagnose(Classifications).
+    ask_classifications_and_diagnose(Classifications),
+    init.
